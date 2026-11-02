@@ -14,6 +14,7 @@ concurrency:
 
 env:
   IMAGE_NAME: kien-shop-cart
+  TRIVY_IMAGE: aquasec/trivy@sha256:2416d1f74045b57274df1a340eee6b510cacd73c66a6ccb8da092b117eb7d222
 
 jobs:
   test:
@@ -46,14 +47,16 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Scan source, dependencies, and configuration
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          trivyignores: .trivyignore
-          exit-code: '1'
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            "$TRIVY_IMAGE" fs \
+            --scanners vuln,secret,misconfig \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --ignorefile .trivyignore \
+            --exit-code 1 .
 
   build-and-push:
     name: Build, scan, and publish image
@@ -76,12 +79,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Scan image for critical vulnerabilities
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          image-ref: ${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: '1'
+        env:
+          IMAGE_REF: ${{ env.IMAGE_REPOSITORY }}:${{ github.sha }}
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            "$TRIVY_IMAGE" image \
+            --severity CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 "$IMAGE_REF"
       - name: Log in to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
