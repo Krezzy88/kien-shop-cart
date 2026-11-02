@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /workspace
 
 COPY gradlew gradlew.bat build.gradle settings.gradle /workspace/
@@ -8,7 +8,7 @@ COPY src /workspace/src
 RUN chmod +x /workspace/gradlew \
   && /workspace/gradlew --no-daemon clean bootJar -x test
 
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:25-jre AS runtime
 WORKDIR /app
 
 ARG GIT_SHA=unknown
