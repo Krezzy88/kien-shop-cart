@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: defaultdb
+      MYSQL_ROOT_PASSWORD: local-dev-only
+      MYSQL_USER: shopping_cart
+      MYSQL_PASSWORD: local-dev-only
+    volumes:
+      - kien-shop-cart-data:/var/lib/mysql
+      - ./src/main/resources/db/re_shopping_cart_db.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-plocal-dev-only"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-local}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://db:3306/defaultdb
+      DB_USERNAME: shopping_cart
+      DB_PASSWORD: local-dev-only
+      JAVA_OPTS: -XX:MaxRAMPercentage=75.0
+    ports:
+      - "8080:8080"
+
+volumes:
+  kien-shop-cart-data:

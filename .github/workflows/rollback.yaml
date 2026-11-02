@@ -1,0 +1,45 @@
+name: Manual rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Full lowercase commit SHA of a previously published image
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Redeploy selected image
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate requested image tag
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          if [[ ! "$IMAGE_TAG" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "image_tag must be a full lowercase 40-character commit SHA"
+            exit 1
+          fi
+      - name: Deploy image on EC2
+        uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+        env:
+          IMAGE: ${{ secrets.DOCKER_USER }}/kien-shop-cart:${{ inputs.image_tag }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          envs: IMAGE,DB_URL,DB_USERNAME,DB_PASSWORD
+          script_path: deploy/deploy.sh

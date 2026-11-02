@@ -1,0 +1,47 @@
+### Build outputs / tooling
+build/
+out/
+bin/
+.gradle/
+
+### IDE / OS
+.idea/
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+### VCS
+.git/
+
+### Tests / reports
+src/test/
+test-results/
+*.log
+logs/
+
+### Env files (never bake secrets into images)
+.env
+.env.*
+
+### Docs (optional for build context)
+*.md
+HELP.md
+
+### CI metadata (not needed inside image)
+.github/
+ci-cd.yaml
+
+### Deployment and infrastructure sources
+deploy/
+infra/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl

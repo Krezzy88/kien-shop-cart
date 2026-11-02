@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f7fb" />
+    <title>Kien Store | Everyday essentials</title>
+    <link rel="stylesheet" th:href="@{/css/store.css}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Kien Store home">
+        <span class="brand-mark">K</span>
+        <span>Kien Store</span>
+      </a>
+      <a class="cart-link" href="#shopping-cart">
+        Your cart <span class="cart-count" th:text="${#lists.size(cartLines)}">0</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">A little better, every day</p>
+        <h1>Useful things.<br /><span>Thoughtfully picked.</span></h1>
+        <p class="hero-copy">A simple demo storefront for the things you reach for most.</p>
+      </section>
+
+      <div class="store-layout">
+        <section class="catalog" aria-labelledby="catalog-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">The collection</p>
+              <h2 id="catalog-title">Shop essentials</h2>
+            </div>
+            <span class="muted" th:text="${#lists.size(products)} + ' items'">0 items</span>
+          </div>
+
+          <div class="product-grid">
+            <article class="product-card" th:each="product : ${products}">
+              <div class="product-art" th:classappend="${product.category == 'TECH'} ? ' art-tech' : ' art-home'">
+                <span class="art-label" th:text="${product.category}">TECH</span>
+                <span class="art-symbol" th:text="${product.category == 'TECH'} ? 'T' : 'H'">T</span>
+              </div>
+              <div class="product-details">
+                <p class="product-category" th:text="${product.category}">TECH</p>
+                <h3 th:text="${product.name}">Product name</h3>
+                <p class="product-description" th:text="${product.description}">Product description</p>
+                <div class="product-buy-row">
+                  <strong th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</strong>
+                  <form th:action="@{/carts/{cartId}/products/{productId}(cartId=${cartId}, productId=${product.id})}" method="post">
+                    <button class="button button-dark" type="submit">Add to cart</button>
+                  </form>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="cart-panel" id="shopping-cart" aria-labelledby="cart-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Ready when you are</p>
+              <h2 id="cart-title">Your cart</h2>
+            </div>
+            <span class="cart-count" th:text="${#lists.size(cartLines)}">0</span>
+          </div>
+
+          <div class="empty-state" th:if="${#lists.isEmpty(cartLines)}">
+            <span class="empty-icon" aria-hidden="true">+</span>
+            <p>Your cart is waiting.</p>
+            <span>Add something you like to get started.</span>
+          </div>
+
+          <div class="cart-lines" th:unless="${#lists.isEmpty(cartLines)}">
+            <article class="cart-line" th:each="line : ${cartLines}">
+              <div class="line-copy">
+                <h3 th:text="${line.product.name}">Product</h3>
+                <p th:text="${#numbers.formatDecimal(line.product.price, 0, 'COMMA', 0, 'POINT')} + ' VND each'">0 VND each</p>
+              </div>
+              <div class="line-controls">
+                <form th:action="@{/carts/{cartId}/lines/{lineId}/decrease(cartId=${cartId}, lineId=${line.id})}" method="post">
+                  <button class="quantity-button" type="submit" th:attr="aria-label='Decrease ' + ${line.product.name}">−</button>
+                </form>
+                <span th:text="${line.quantity}">1</span>
+                <form th:action="@{/carts/{cartId}/lines/{lineId}/increase(cartId=${cartId}, lineId=${line.id})}" method="post">
+                  <button class="quantity-button" type="submit" th:attr="aria-label='Increase ' + ${line.product.name}">+</button>
+                </form>
+              </div>
+              <form class="remove-form" th:action="@{/carts/{cartId}/lines/{lineId}/remove(cartId=${cartId}, lineId=${line.id})}" method="post">
+                <button class="text-button" type="submit">Remove</button>
+              </form>
+            </article>
+          </div>
+
+          <div class="cart-summary" th:unless="${#lists.isEmpty(cartLines)}">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <strong th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</strong>
+            </div>
+            <p class="shipping-note">Shipping and taxes are not included.</p>
+            <form th:action="@{/carts/{cartId}/clear(cartId=${cartId})}" method="post">
+              <button class="button button-outline button-full" type="submit">Clear cart</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <span>Kien Store</span>
+      <span>A sample storefront built for learning.</span>
+    </footer>
+  </body>
+</html>

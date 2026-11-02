@@ -1,0 +1,4 @@
+# EC2 needs TCP/443 egress to retrieve Docker Hub images and Amazon Linux updates.
+# All-port egress is removed; MySQL egress is separately restricted to database_cidr/port.
+# Revisit this exception if the deployment uses VPC endpoints or controlled static egress.
+AWS-0104
